@@ -293,7 +293,7 @@ window.__ModuleLoader__.load({
 		* @param props - composed slot props (contract/slots.ts).
 		* @returns the section element tree.
 		*/
-		function GeneralSection({ renderSlot }) {
+		function GeneralSection({ renderSlot, t }) {
 			/* dsh-mobile-textzoom: Android-only font-size slider in Settings -> General.
 			 * Persists to localStorage; applies via the native bridge setTextZoom
 			 * (WebView textZoom), which scales text without touching layout. */
@@ -331,7 +331,7 @@ window.__ModuleLoader__.load({
 			const fontRow = isAndroid ? (0, react_jsx_runtime.jsxs)("div", {
 				style: rowStyle,
 				children: [
-					(0, react_jsx_runtime.jsx)("span", { style: labelStyle, children: "\u5b57\u4f53\u5927\u5c0f" }),
+					(0, react_jsx_runtime.jsx)("span", { style: labelStyle, children: t("fontSize") }),
 					(0, react_jsx_runtime.jsx)("input", {
 						type: "range",
 						min: 80,
@@ -339,7 +339,7 @@ window.__ModuleLoader__.load({
 						step: 5,
 						value: zoom,
 						style: sliderStyle,
-						"aria-label": "\u5b57\u4f53\u5927\u5c0f",
+						"aria-label": t("fontSize"),
 						onChange: (e) => setZoom(parseInt(e.target.value, 10))
 					}),
 					(0, react_jsx_runtime.jsx)("span", { style: valueStyle, children: zoom + "%" })
@@ -371,12 +371,12 @@ window.__ModuleLoader__.load({
 			const immersiveRow = isAndroid ? (0, react_jsx_runtime.jsxs)("div", {
 				style: rowStyle,
 				children: [
-					(0, react_jsx_runtime.jsx)("span", { style: labelStyle, children: "\u6c89\u6d78\u5f0f\u72b6\u6001\u680f" }),
+					(0, react_jsx_runtime.jsx)("span", { style: labelStyle, children: t("immersiveStatusBar") }),
 					(0, react_jsx_runtime.jsx)("input", {
 						type: "checkbox",
 						checked: immersive,
 						style: switchStyle,
-						"aria-label": "\u6c89\u6d78\u5f0f\u72b6\u6001\u680f",
+						"aria-label": t("immersiveStatusBar"),
 						onChange: (e) => setImmersive(e.target.checked)
 					})
 				]
@@ -529,7 +529,9 @@ window.__ModuleLoader__.load({
 			"close": "关闭",
 			"openDocument": "打开配置文件",
 			"openDocument.error": "无法打开配置文件",
-			"general.nav": "通用设置"
+			"general.nav": "通用设置",
+			"fontSize": "字体大小",
+			"immersiveStatusBar": "沉浸式状态栏"
 		};
 		/** English dictionary, checked complete against the zh key set. */
 		const en = {
@@ -538,7 +540,9 @@ window.__ModuleLoader__.load({
 			"close": "Close",
 			"openDocument": "Open configuration file",
 			"openDocument.error": "Could not open configuration file",
-			"general.nav": "General"
+			"general.nav": "General",
+			"fontSize": "Font size",
+			"immersiveStatusBar": "Immersive status bar"
 		};
 		//#endregion
 		//#region lib/types/client/index.js
