@@ -4,18 +4,25 @@ plugins {
 }
 
 android {
-  namespace = "com.dshmobile.shell"
+  namespace = "com.dsharnessmobile.shell"
   compileSdk = 36
 
   defaultConfig {
-    applicationId = "com.dshmobile.shell"
+    applicationId = "com.dsharnessmobile.shell"
     minSdk = 26
     // targetSdk 34: Android 15+ forbids exec of app-data ELF for targetSdk 35+
     // (the embedded engine, bash, and every child command would need linker64
     // wrappers); 34 keeps native exec working on Android 15/16 devices.
     targetSdk = 34
-    versionCode = 17
-    versionName = "0.12.3"
+    versionCode = 21
+    // Snapshot builds append a suffix (e.g. -SN-1-RC8) via -PversionNameSuffix; release builds pass none.
+    val snapshotSuffix = providers.gradleProperty("versionNameSuffix").getOrElse("")
+    versionName = "0.12.4" + snapshotSuffix
+    buildConfigField("String", "TERMUX_VERSION", "\"0.118.3\"")
+  }
+
+  buildFeatures {
+    buildConfig = true
   }
 
   androidResources {
@@ -23,14 +30,30 @@ android {
     noCompress += "xz"
   }
 
+  signingConfigs {
+    // Fixed debug signing from the repo keystore: CI and local builds must produce
+    // byte-compatible signatures, otherwise users cannot install over previous
+    // releases (INSTALL_FAILED_UPDATE_INCOMPATIBLE). AGP's default debug keystore
+    // lookup (~/.android/debug.keystore) is unreliable on CI runners, so pin it.
+    create("repoDebug") {
+      storeFile = rootProject.file("keystore/debug.keystore")
+      storePassword = "android"
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
+    }
+  }
+
   buildTypes {
     release {
       isMinifyEnabled = false
     }
+    debug {
+      signingConfig = signingConfigs.getByName("repoDebug")
+    }
   }
 
   lint {
-    // 离线环境无 lint-gradle 依赖缓存（国内网络）；lint 非发布关键路径。
+    // Offline environments lack the lint-gradle dependency cache (CN networks); lint is not on the release-critical path.
     checkReleaseBuilds = false
     abortOnError = false
   }
@@ -44,7 +67,7 @@ android {
   }
 }
 
-// 运行时快照来自 GitHub Releases（大文件不入库）；缺失时构建失败并给出获取指引。
+// The runtime snapshot comes from GitHub Releases (large files are not committed); the build fails with fetch guidance when it is missing.
 tasks.whenTaskAdded {
   if (name == "mergeDebugAssets" || name == "mergeReleaseAssets") {
     doFirst {
@@ -52,8 +75,7 @@ tasks.whenTaskAdded {
       if (!snap.exists()) {
         throw GradleException(
           "缺少运行时快照 assets/snapshot.tar.xz —— " +
-            "从 GitHub Releases 下载 snapshot-x86_64.tar.xz 后放到 app/src/main/assets/snapshot.tar.xz，" +
-            "或按 scripts/make-snapshot.sh 在 Termux 设备自打后拉取（见 README.md）",
+            "从 GitHub Releases 下载 snapshot-x86_64.tar.xz 后放到 app/src/main/assets/snapshot.tar.xz（见 README.md）",
         )
       }
     }
@@ -62,6 +84,9 @@ tasks.whenTaskAdded {
 
 dependencies {
   implementation("androidx.activity:activity-ktx:1.10.1")
+  // androidx.core: FileProvider (external-reader open, issue #52); ViewCompat/
+  // WindowInsetsCompat were previously satisfied transitively via activity-ktx.
+  implementation("androidx.core:core-ktx:1.15.0")
   implementation("org.apache.commons:commons-compress:1.28.0")
   implementation("org.tukaani:xz:1.10")
   implementation("dev.rikka.shizuku:api:13.1.5")
